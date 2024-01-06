@@ -193,6 +193,28 @@ public class Sigga extends GhidraScript {
     }
 
     /**
+     * @param signature
+     * @return goldsigga
+     */
+    private String goldSignature(String signature){
+        String[] codes = signature.split(" ");
+        int wildcard = 0;
+        String result = "";
+        for(int i = 0; i < codes.length; i++){
+            if(wildcard > 0){
+                result += "\\x2A";
+                wildcard--;
+                continue;
+            }
+            if(codes[i].equalsIgnoreCase("A1") || codes[i].equalsIgnoreCase("68")){
+                wildcard += 4;
+            }
+            result += "\\x" + codes[i];
+        }
+        return result;
+    }
+
+    /**
      * Create a signature for the function currently selected in the editor and output it
      *
      * @throws MemoryAccessException If the selected function is inside not-accessible memory
@@ -225,7 +247,7 @@ public class Sigga extends GhidraScript {
         // Also strip trailing whitespaces and wildcards
         // TODO: Make this faster - Depending on the program's size and the size of the signature (function body) this could take quite some time
         signature = refineSignature(signature, functionBody.getMinAddress());
-
+        signature = goldSignature(signature);
         // Selecting and copying the signature manually is a chore :)
         copySignatureToClipboard(signature);
 
